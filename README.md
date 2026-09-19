@@ -1,8 +1,19 @@
-# Enterprise-Oriented Multimodal E-Commerce Recommendation AI System
+# Product Recommendation System
 
-A production-minded recommendation engineering project built around two independent real-world dataset tracks: RetailRocket behavior events and Amazon Berkeley Objects (ABO) product metadata and images. The repository demonstrates data inspection, reusable preparation, baseline and multimodal similarity methods, offline evaluation, and a lightweight controlled orchestration demo.
+A multimodal AI/ML recommendation system that relates and ranks products using three complementary signal types: user behavioral interactions, product text, and product images. It is built on two independent real-world dataset tracks, RetailRocket behavior events and Amazon Berkeley Objects (ABO) product metadata and images, and covers a structured local engineering workflow from dataset discovery and reusable cleaning through baseline and multimodal similarity models, offline evaluation, and a controlled agentic recommendation workflow.
 
-The project is implemented as a local research and engineering workflow. It is not currently deployed as a production API or service.
+The project is a reproducible local research and engineering workflow backed by scripted pipelines and a fixture-based test suite. It is not deployed as a production API or service. FastAPI serving, a vector database, a standards-compliant MCP server, monitoring, and deployment infrastructure are roadmap items, not current capabilities.
+
+### At a Glance
+
+| | |
+| --- | --- |
+| Signals | Behavioral events, product text, product images |
+| Dataset tracks | RetailRocket (real interaction events), Amazon Berkeley Objects (real product metadata and images) |
+| Methods | Event-weighted popularity, TF-IDF text similarity, RGB histogram image similarity, CLIP text-image similarity |
+| Stack | Python, CUDA-enabled PyTorch, Transformers, scikit-learn, pandas, NumPy, Pillow, pytest |
+| Tests | Fixture-based automated test suite; raw datasets are not required |
+| Delivery status | Local workflow and offline evaluation; not a deployed service |
 
 ## Business Problem
 
@@ -152,7 +163,7 @@ ABO does not contain clicks, carts, purchases, conversions, or explicit relevanc
 
 These results are based on one bounded product sample and query. They indicate behavior under the defined proxy protocol only; they must not be interpreted as click-through, purchase, satisfaction, or production ranking performance.
 
-## Agentic MCP-Style Workflow
+## Controlled Agentic Recommendation Workflow
 
 The repository includes a lightweight local orchestration demo:
 
@@ -161,7 +172,9 @@ The repository includes a lightweight local orchestration demo:
 3. `ExplanationAgent` explains the approved structured recommendations.
 4. `RecommendationOrchestrator` returns a JSON response with selected and rejected recommendations, policy summaries, assumptions, and limitations.
 
-The tool functions are deliberately described as **MCP-style controlled tool interfaces**. This is not a production MCP server or client implementation, and the agents are not fully autonomous.
+The tool layer is deliberately described as **MCP-style controlled tool interfaces**, where MCP means **Model Context Protocol**. The current implementation uses local, explicitly defined tool interfaces to structure interactions between the recommendation workflow and supporting functions.
+
+This is not a production MCP implementation. The repository contains no MCP transport, standalone MCP server, or external MCP client integration. A standards-compliant MCP implementation remains a roadmap item.
 
 OpenAI explanation generation is optional. The LLM cannot select, add, remove, or rerank recommendations; it can only rewrite an explanation from structured outputs. If `OPENAI_API_KEY` is absent, the SDK is unavailable, or the request fails, the workflow uses a deterministic explanation.
 
@@ -198,7 +211,7 @@ OpenAI explanation generation is optional. The LLM cannot select, add, remove, o
 
 ## Setup
 
-The project targets Python 3.11 or later and is compatible with WSL2 Ubuntu and VS Code.
+The project targets Python 3.11 or later and is developed on WSL2 Ubuntu with VS Code.
 
 ```bash
 python3 -m venv .venv
@@ -208,7 +221,23 @@ python -m pip install -r requirements.txt
 python -m pip install -e . --no-deps
 ```
 
-The core requirements include pandas, NumPy, scikit-learn, Pillow, PyTorch CPU, Transformers, and pytest.
+The core requirements include pandas, NumPy, scikit-learn, Pillow, CUDA-enabled PyTorch, Transformers, and pytest. PyTorch is pinned to a CUDA 13.0 build and resolved from the `cu130` PyTorch index declared at the top of `requirements.txt`.
+
+A GPU is optional. CUDA-enabled PyTorch wheels also execute on CPU-only machines; a compatible NVIDIA GPU and driver are needed only for GPU acceleration. Verify an installation with:
+
+```bash
+python -c "import torch; print(torch.__version__, torch.version.cuda, torch.cuda.is_available())"
+```
+
+The setup is verified locally on the environment below. This is a development reference point, not a project requirement:
+
+| Component | Verified value |
+| --- | --- |
+| Python | 3.12.3 |
+| PyTorch | 2.12.0+cu130 |
+| PyTorch CUDA | 13.0 |
+| `torch.cuda.is_available()` | True |
+| GPU | NVIDIA GeForce RTX 5060 Laptop GPU |
 
 The OpenAI Python SDK is optional and is not required for cleaning, recommendation methods, evaluation, tests, or deterministic explanations. Install it only if using the optional explanation mode:
 
@@ -314,13 +343,15 @@ python -m pytest -q tests/unit/test_abo_proxy_similarity.py
 python -m pytest -q   tests/unit/test_abo_recommendation_tools.py   tests/unit/test_abo_recommendation_agents.py
 ```
 
-The exact passing test count can change as tests are added. Use the command output from the current environment as the source of truth rather than relying on a hardcoded count.
+Both `pytest` and `python -m pytest` work: `pyproject.toml` puts `src` and the repository root on the pytest import path, so package modules and root-level `scripts` modules resolve without per-test `sys.path` changes.
+
+The suite currently reports **112 passing tests** on the verified environment. The exact count changes as tests are added, so treat the command output from your own environment as the source of truth rather than a hardcoded number.
 
 ## Continuous Integration
 
-GitHub Actions runs `python -m pytest -q` on pull requests and pushes to `dev` and `main`. This workflow is a repository quality gate only; it does not deploy the project, run production operations, or imply production readiness.
+GitHub Actions runs `python -m pytest -q` on pull requests and pushes to `dev` and `main`, using Python 3.11 on a CPU-only `ubuntu-latest` runner. This workflow is a repository quality gate only; it does not deploy the project, run production operations, or imply production readiness.
 
-The workflow installs `requirements.txt`, including the CPU PyTorch and Transformers dependencies used by CLIP-related tests. Those dependencies can make CI setup heavier than the fixture-only test data itself.
+The workflow installs the same `requirements.txt` used locally, so CI resolves the CUDA-enabled PyTorch build even though hosted runners have no GPU. This is intentional and correct: CUDA-enabled wheels run on CPU, and the suite exercises small deterministic fixtures rather than GPU workloads. The trade-off is install weight, since the CUDA wheel is considerably larger than a CPU-only build and dominates CI setup time.
 
 ## Security and Secrets
 

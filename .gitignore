@@ -8,6 +8,11 @@ __pycache__/
 venv/
 env/
 
+# Test / tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
 # Environment variables
 .env
 

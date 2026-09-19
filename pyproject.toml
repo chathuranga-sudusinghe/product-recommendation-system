@@ -3,9 +3,9 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "ecommerce-recommender"
+name = "product-recommendation-system"
 version = "0.1.0"
-description = "Enterprise multimodal e-commerce recommendation AI system."
+description = "Multimodal AI product recommendation system combining behavioral signals with product text and image similarity."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = []
@@ -15,4 +15,4 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["src"]
+pythonpath = ["src", "."]

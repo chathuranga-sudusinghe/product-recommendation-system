@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This disclosure explains how AI-assisted tools supported the Enterprise Multimodal E-Commerce Recommender and what remained under human control. It improves transparency without implying that AI tools independently authored, approved, or validated the repository.
+This disclosure explains how AI-assisted tools supported the Product Recommendation System and what remained under human control. It improves transparency without implying that AI tools independently authored, approved, or validated the repository.
 
 ## AI-Assisted Tools Used
 
